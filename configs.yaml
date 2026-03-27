@@ -1,0 +1,377 @@
+base:
+  # caif = Contrastive Active Inference
+  # STORM = Efficient Stochastic Transformers Based World Models for Reinforcement Learning
+
+  # Basic
+  label: 0  # Identifier used to split log groups
+  is_debug: False
+  suite: "null_suite"
+  init_from: "scratch"  # "scratch" | "resume" | "eval"
+  logdir: 'log'
+  compile: False
+  determinism: False
+  use_decay_world: False
+  use_decay_policy: False
+  use_decay_self_prior: False
+  warmup_iters: None
+  lr_decay_iters: None
+  use_zclip_world: True
+  use_zclip_policy: True
+  use_zclip_self_prior: True
+
+  # Unit is episode
+  save_model_period: 500
+  recon_model_period: 10
+  record_train_video_period: 1000
+  checkpoint_save_episode_store: False
+  record_eval_video_period: 10
+  eval_period: 10
+
+  # Env (unit is "real" env steps, not "model" env steps = applied action_repeat)
+  action_repeat: 1  # (when this is 10, 10 env steps = 1 model steps)
+  init_random_steps: 100  # 100 steps for env (1 sec)
+  detach_step_threshold: 100  # 100 steps for env (1 sec), 10 steps for model
+
+  # Env (unit is "model" env steps)
+  timelimit: 1000  # 1000 steps for model (if action_repeat is 10, it is 10000 steps for env)
+
+  # Runner
+  train_num_envs: 10
+  eval_num_envs: 10
+
+  # Training setting
+  use_amp: False  # d-kim: Very bad exp result when turn on...
+  n_epochs: 100  # Number of train loop after each episodes
+  total_steps: 10000000000000000  # 5000000 in caif, 102000 in STORM
+  max_episodes: 10000000000000000  # Maximum episodes I can run (will be break by ctrl+c)
+  # How many episode should I save in episode store (on memory)
+  # STORM is 100000 steps (100 episodes if timelimit is 1000)
+  max_episode_stores: 1000
+  train_world_episodes_from: 100
+  train_self_prior_episodes_from: 120
+  train_policy_episodes_from: 140
+
+  # Data sampling
+  replay_on_gpu: False  # PAPERSKIP: Not implemented
+  n_paths: 32  # Batch size (Number of trajectories)
+  n_steps: 64  # Sample time (Length of trajectories)
+  n_imagine_paths: 1024
+  n_imagine_context_steps: 8  # Number of context steps used to initialize latents before imagination
+  n_imagine_steps: 16  # Number of imagined future rollout steps from initialized latents
+
+  ## Model common
+  reward_symlog_classes: 255
+  reward_symlog_lower_bound: -20.0
+  reward_symlog_upper_bound: 20.0
+
+  ## World model
+  cnn_channel_depth: 32
+  world_stoch_size: 32  # 32 in STORM (32 Categorical latents)
+  world_class_size: 32  # 32 in STORM (Use 32 classes for 1 latent)
+  world_hidden_size: 512  # 200 in caif, 512 in STORM (512 Transformer output)
+  transformer_max_steps: 64
+  transformer_n_layers: 2
+  transformer_n_heads: 8
+  transformer_dropout: 0.1
+
+  ## World training
+  world_lr: 1e-4  # 6e-4 in caif, 1e-4 in STORM
+  min_world_lr: None
+  world_free_nats: 1.0  # 3.0 in caif, 1.0 in STORM
+  world_dynamics_kl_scale: 0.5
+  world_representation_kl_scale: 0.1
+  world_grad_clip: 1000.0
+
+  ## Policy model
+  use_reinforce: True  # True for discrete-like policy, False for policy gradient
+  policy_hidden_size: 128  # 200 in caif, 512 in STORM
+  value_hidden_size: 256
+  policy_layers: 2
+
+  ## Policy training
+  policy_lr: 3e-5  # 8e-5 in caif, 3e-5 in STORM
+  min_policy_lr: None
+  policy_adam_eps: 1e-5  # DreamerV3
+  advantage_ema_decay: 0.99
+  advantage_ema_lower_bound: 0.05
+  advantage_ema_upper_bound: 0.95
+  entropy_temperature: 3e-4  # 1e-4 in caif, 3e-4 in STORM
+  discount_gamma: 0.997
+  gae_lambda: 0.95
+  update_slow_critic_decay: 0.98  # 0.98 in STORM
+  policy_grad_clip: 100.0
+
+  ## Self-prior model
+  # Self-prior training
+  self_prior_hidden_size: 128
+  self_prior_n_layers: 2
+  self_prior_n_heads: 8
+  self_prior_lr: 1e-4
+  min_self_prior_lr: None
+  self_prior_grad_clip: 1000.0
+  use_slow_self_prior: True
+  update_slow_self_prior_decay: 0.98
+
+# === debug ===
+debugconf:
+  is_debug: True
+  compile: False
+  n_paths: 32  # 20 * 0.05 = 1
+  n_steps: 5
+  n_imagine_paths: 32
+  n_imagine_context_steps: 7
+  n_imagine_steps: 9
+  reward_symlog_classes: 255  # 13 was too small
+  world_stoch_size: 32
+  world_class_size: 32
+  world_hidden_size: 128
+  transformer_max_steps: 18
+  transformer_n_heads: 8  # Performance is still poor even with 8 heads
+  world_lr: 1e-3  # Performance remains poor even when lowering world/policy/flow lr
+  policy_hidden_size: 64  # Performance is still poor even at hidden size 64
+  policy_lr: 1e-3
+  self_prior_lr: 1e-3
+
+tinyhidden:
+  cnn_channel_depth: 2
+  world_stoch_size: 8
+  world_class_size: 8
+  world_hidden_size: 32
+  policy_hidden_size: 32
+
+smallhidden:
+  cnn_channel_depth: 8
+  world_stoch_size: 16
+  world_class_size: 16
+  world_hidden_size: 128
+  policy_hidden_size: 128
+
+normalhidden:
+  cnn_channel_depth: 32
+  world_stoch_size: 32
+  world_class_size: 32
+  world_hidden_size: 512
+  policy_hidden_size: 512
+
+
+usecompile:
+  compile: True
+  determinism: False
+
+yesamp:
+  use_amp: True
+
+nodecay:
+  use_decay_world: False
+  use_decay_policy: False
+  use_decay_self_prior: False
+  world_lr: 3e-5
+  policy_lr: 3e-5
+  self_prior_lr: 3e-5
+
+usedecay1500:
+  use_decay_world: True
+  use_decay_policy: True
+  use_decay_self_prior: True
+  warmup_iters: 100  # nanoGPT = 2000
+  lr_decay_iters: 1500 # nanoGPT = 600000
+  world_lr: 6e-4  # nanoGPT
+  policy_lr: 6e-4  # nanoGPT
+  self_prior_lr: 6e-4  # nanoGPT
+  min_world_lr: 3e-5  # 1/20
+  min_policy_lr: 3e-5  # 1/20 (DreamerV3 = 8e-5)
+  min_self_prior_lr: 3e-5  # 1/20
+
+usedecay20000:
+  use_decay_world: True
+  use_decay_policy: True
+  use_decay_self_prior: True
+  warmup_iters: 100  # nanoGPT = 2000
+  lr_decay_iters: 20000 # nanoGPT = 600000
+  world_lr: 6e-4  # nanoGPT
+  policy_lr: 6e-4  # nanoGPT
+  self_prior_lr: 6e-4  # nanoGPT
+  min_world_lr: 3e-5  # 1/20
+  min_policy_lr: 3e-5  # 1/20 (DreamerV3 = 8e-5)
+  min_self_prior_lr: 3e-5  # 1/20
+
+usedecay100000:
+  use_decay_world: True
+  use_decay_policy: True
+  use_decay_self_prior: True
+  warmup_iters: 2000  # nanoGPT = 2000
+  lr_decay_iters: 100000 # nanoGPT = 600000
+  world_lr: 6e-4  # nanoGPT
+  policy_lr: 6e-4  # nanoGPT
+  self_prior_lr: 6e-4  # nanoGPT
+  min_world_lr: 3e-5  # 1/20
+  min_policy_lr: 3e-5  # 1/20 (DreamerV3 = 8e-5)
+  min_self_prior_lr: 3e-5  # 1/20
+
+usedecaytransformer100000:
+  use_decay_world: True
+  use_decay_policy: False
+  use_decay_self_prior: True
+  warmup_iters: 2000  # nanoGPT = 2000
+  lr_decay_iters: 100000
+  world_lr: 6e-4  # nanoGPT
+  policy_lr: 3e-5
+  self_prior_lr: 6e-4  # nanoGPT
+  min_world_lr: 3e-5  # 1/20
+  min_policy_lr: None
+  min_self_prior_lr: 3e-5  # 1/20
+
+bigworld:
+  transformer_n_layers: 6
+
+middleworld:
+  n_steps: 128
+  transformer_max_steps: 128
+  n_imagine_paths: 256  # 250716: 64 can still pass but training takes longer
+  n_imagine_context_steps: 30
+  n_imagine_steps: 70
+
+longworld:
+  n_steps: 256
+  transformer_max_steps: 256
+  n_imagine_paths: 256  # 250716: 64 can still pass but training takes longer
+  n_imagine_context_steps: 92
+  n_imagine_steps: 92
+
+# === env ===
+robot_mirror:
+  suite: "robot_mirror"
+  sticker_detach_distance_threshold: -999
+
+# === repeat ===
+rep1:
+  action_repeat: 1
+  # (env step) 1 sec for 0.01 env
+  init_random_steps: 100
+  detach_step_threshold: 100
+  # (model step) 5 sec for 0.01 env
+  timelimit: 500
+
+rep1easy:
+  action_repeat: 1
+  # (env step) 1 sec for 0.01 env
+  init_random_steps: 100
+  detach_step_threshold: 30  # 0.3 sec
+  # (model step) 5 sec for 0.01 env
+  timelimit: 500
+
+rep5:
+  action_repeat: 5
+  # (env step) 1 sec for 0.01 env
+  init_random_steps: 100
+  detach_step_threshold: 100
+  # (model step) 5 sec for 0.01 env
+  timelimit: 100
+
+rep5easy:
+  action_repeat: 5
+  # (env step) 1 sec for 0.01 env
+  init_random_steps: 100
+  detach_step_threshold: 30  # 0.3 sec
+  # (model step) 5 sec for 0.01 env
+  timelimit: 100
+  sticker_detach_distance_threshold: 0.02  # 20mm = 2cm
+
+rep5middle:
+  action_repeat: 5
+  # (env step) 1 sec for 0.01 env
+  init_random_steps: 100
+  detach_step_threshold: 50  # 0.5 sec
+  # (model step) 5 sec for 0.01 env
+  timelimit: 100
+  sticker_detach_distance_threshold: 0.01  # 10mm = 1cm
+
+rep5hard:
+  action_repeat: 5
+  # (env step) 1 sec for 0.01 env
+  init_random_steps: 100
+  detach_step_threshold: 100  # 1.0 sec
+  # (model step) 5 sec for 0.01 env
+  timelimit: 100
+  sticker_detach_distance_threshold: 0.005  # 5mm = 0.5cm
+
+rep5easylong:
+  action_repeat: 5
+  # (env step) 1 sec for 0.01 env
+  init_random_steps: 100
+  detach_step_threshold: 30  # 0.3 sec
+  # (model step) 15 sec for 0.01 env
+  timelimit: 300
+
+rep10:
+  action_repeat: 10
+  # (env step) 1 sec for 0.001 env
+  init_random_steps: 1000
+  detach_step_threshold: 1000
+  # (model stel) 5 sec for 0.001 env
+  timelimit: 50
+
+# === init ===
+train100all:
+  train_world_episodes_from: 100
+  train_self_prior_episodes_from: 100
+  train_policy_episodes_from: 100
+
+# === n_epochs ===
+epoch1:
+    n_epochs: 1
+
+epoch10:
+    n_epochs: 10  # No major quality gap observed; use epoch10 for speed
+
+eval_period10:
+    record_eval_video_period: 10
+    eval_period: 10
+
+eval_period50:
+    record_eval_video_period: 50
+    eval_period: 50
+
+eval_period100:
+    record_eval_video_period: 100
+    eval_period: 100
+
+eval_period500:
+    record_eval_video_period: 500
+    eval_period: 500
+
+label01:
+    label: "01"
+
+label02:
+    label: "02"
+
+label03:
+    label: "03"
+
+label04:
+    label: "04"
+
+label05:
+    label: "05"
+
+label06:
+    label: "06"
+
+label07:
+    label: "07"
+
+label08:
+    label: "08"
+
+label09:
+    label: "09"
+
+label10:
+    label: "10"
+
+resume:
+    init_from: "resume"
+
+eval:
+    init_from: "eval"

@@ -1,0 +1,14 @@
+__pycache__
+
+.cursor
+.idea
+.venv
+.vscode
+
+backup/*
+log/*
+program/envs/Geometry
+program/envs/250501_scaniverse
+sandbox/
+mujoco
+STORM

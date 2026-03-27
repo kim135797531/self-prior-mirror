@@ -1,0 +1,148 @@
+<!--
+The MIT License
+
+Copyright (c) 2016 OpenAI
+Copyright (c) 2022 Farama Foundation
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+-->
+<!--
+Pusher model for `Pusher-v5`, based on openai/gym/Pusher
+modified by @Kallinteris-Andreas
+	- reduced body.object cylinder density 0.00001 -> 0.01
+	- disabled body.object sphere
+-->
+<mujoco model="arm_mirror">
+    <compiler inertiafromgeom="true" angle="radian" coordinate="local"/>
+
+    <option timestep="0.01" gravity="0 0 0" iterations="20" integrator="Euler">
+        <flag warmstart="disable"/>
+    </option>
+
+    <visual>
+        <rgba haze=".3 .3 .3 1"/>
+        <map znear="0.001"/>
+    </visual>
+
+    <default>
+        <joint armature='0.04' damping="1" limited="true"/>
+        <geom friction=".8 .1 .1" density="300" margin="0.002" condim="1" contype="0" conaffinity="0"/>
+    </default>
+
+    <asset>
+        <texture type="skybox" builtin="gradient" rgb1="0.3 0.5 0.7" rgb2="0.3 0.7 0.5" width="512" height="512"/>
+        <texture name="texplane" type="2d" builtin="checker" rgb1=".25 .25 .25" rgb2=".3 .3 .3" width="512" height="512"
+                 mark="cross" markrgb=".8 .8 .8"/>
+        <material name="matplane" reflectance="0.3" texture="texplane" texrepeat="1 1" texuniform="true"/>
+    </asset>
+
+    <worldbody>
+        <camera name="world_camera" pos="0.283 -1.83 0.158" euler="1.48 0 0" fovy="30"/>
+        <camera name="world_camera2" pos="1 -0.7 1" euler="0.27 0.72 1.0" fovy="60"/>
+        <light diffuse=".5 .5 .5" pos="0 -0.5 3" dir="0 0 -1"/>
+        <geom name="table" type="plane" pos="0 -0.5 -0.5" size="1 1 0.1" contype="1" conaffinity="1"/>
+
+        <body name="baby_trunk" pos="0 -1.0 0">
+            <geom name="baby_sticker" type="box" size="0.05 0.001 0.05" pos="0.05 0.12 0.15" rgba="1.0 0.97 0.25 1"/>
+            <geom name="baby_trunk_geom" type="capsule" fromto="0 0 -0.4 0 0 0.2" size="0.1"/>
+            <geom name="baby_l_eye1" type="sphere" rgba="0.6 0.6 0.6 1" pos="-0.06 0.05 0.2" size="0.05"/>
+            <geom name="baby_l_eye2" type="sphere" rgba="0.1 0.1 0.1 1" pos="-0.06 0.09 0.2" size="0.03"/>
+            <geom name="baby_r_eye1" type="sphere" rgba="0.6 0.6 0.6 1" pos=" 0.06 0.05 0.2" size="0.05"/>
+            <geom name="baby_r_eye2" type="sphere" rgba="0.1 0.1 0.1 1" pos=" 0.06 0.09 0.2" size="0.03"/>
+            <camera name="baby_r_camera" mode="fixed" pos="0.06 0.09 0.2" euler="1.3707963267948966 0 0" fovy="50"/>
+
+            <body name="baby_r_upper_arm" pos="0.1 0 0">
+                <geom name="baby_r_upper_arm_geom" type="capsule" fromto="0 0 0 0.15 0 0" size="0.04"/>
+                <joint name="baby_r_upper_arm_lift" type="hinge" pos="0 0 0" axis="0 1 0" range="-0.5236 0.3"/>
+                <joint name="baby_r_upper_arm_roll" type="hinge" pos="0 0 0" axis="1 0 0" range="-1.5 0.0"/>
+                <joint name="baby_r_upper_arm_flex" type="hinge" pos="0 0 0" axis="0 0 1" range="0.0 1.04"/>
+
+                <body name="baby_r_lower_arm" pos="0.15 0 0">
+                    <!-- 32.1cm -> 40cm -->
+                    <geom name="baby_r_lower_arm_geom" type="capsule" fromto="0 0 0 0.25 0 0" size="0.03"/>
+                    <joint name="baby_r_lower_arm_flex" type="hinge" pos="0 0 0" axis="0 1 0" range="-3.10 0"/>
+
+                    <body name="baby_r_hand" pos="0.25 0 0">
+                        <joint name="baby_r_hand_flex" type="hinge" pos="0 0 0" axis="0 1 0"
+                               range="-1.094 0" />
+                        <geom name="baby_r_hand_geom" type="sphere" pos="0.05 0 0" size="0.05"/>
+                    </body>
+                </body>
+            </body>
+        </body>
+
+<!--        <body name="mirror" pos="0 0 0">-->
+<!--            <geom name="mirror_frame_down" type="box" size="0.75 0.05 0.05" pos="0 0 -0.3" rgba="0.761 0.49 0.122 1"/>-->
+<!--            <geom name="mirror_frame_up" type="box" size="0.75 0.05 0.05" pos="0 0 0.5" rgba="0.761 0.49 0.122 1"/>-->
+<!--            <geom name="mirror_frame_left" type="box" size="0.05 0.05 0.45" pos="-0.75 0 0.10" rgba="0.761 0.49 0.122 1"/>-->
+<!--            <geom name="mirror_frame_right" type="box" size="0.05 0.05 0.45" pos="0.75 0 0.10" rgba="0.761 0.49 0.122 1"/>-->
+<!--            <geom name="mirror_glass" type="box" size="0.75 0.01 0.4" pos="0 0 0.10" rgba="1 1 1 0.3"/>-->
+<!--        </body>-->
+
+        <body name="mirror_trunk" pos="0 0 0" xyaxes="-1 0 0 0 -1 0">
+            <geom name="mirror_sticker" type="box" size="0.05 0.001 0.05" pos="-0.05 0.12 0.15" rgba="1.0 0.97 0.25 1"/>
+            <geom name="mirror_trunk_geom" type="capsule" fromto="0 0 -0.4 0 0 0.2" size="0.1"/>
+            <geom name="mirror_l_eye1" type="sphere" rgba="0.6 0.6 0.6 1" pos="-0.06 0.05 0.2" size="0.05"/>
+            <geom name="mirror_l_eye2" type="sphere" rgba="0.1 0.1 0.1 1" pos="-0.06 0.09 0.2" size="0.03"/>
+            <geom name="mirror_r_eye1" type="sphere" rgba="0.6 0.6 0.6 1" pos=" 0.06 0.05 0.2" size="0.05"/>
+            <geom name="mirror_r_eye2" type="sphere" rgba="0.1 0.1 0.1 1" pos=" 0.06 0.09 0.2" size="0.03"/>
+
+            <body name="mirror_l_upper_arm" pos="-0.1 0 0">
+                <geom name="mirror_l_upper_arm_geom" type="capsule" fromto="0 0 0 -0.15 0 0" size="0.04"/>
+                <joint name="mirror_l_upper_arm_lift" type="hinge" pos="0 0 0" axis="0 -1 0" range="-0.5236 0.3"/>
+                <joint name="mirror_l_upper_arm_roll" type="hinge" pos="0 0 0" axis="1 0 0" range="-1.5 0.0"/>
+                <joint name="mirror_l_upper_arm_flex" type="hinge" pos="0 0 0" axis="0 0 -1" range="0.0 1.04"/>
+
+                <body name="mirror_l_lower_arm" pos="-0.15 0 0">
+                    <!-- 32.1cm -> 40cm -->
+                    <geom name="mirror_l_lower_arm_geom" type="capsule" fromto="0 0 0 -0.25 0 0" size="0.03"/>
+                    <joint name="mirror_l_lower_arm_flex" type="hinge" pos="0 0 0" axis="0 -1 0" range="-3.10 0"/>
+
+                    <body name="mirror_l_hand" pos="-0.25 0 0">
+                        <joint name="mirror_l_hand_flex" type="hinge" pos="0 0 0" axis="0 -1 0"
+                               range="-1.094 0"/>
+                        <geom name="mirror_l_hand_geom" type="sphere" pos="-0.05 0 0" size="0.05"/>
+                    </body>
+                </body>
+            </body>
+        </body>
+    </worldbody>
+
+    <contact>
+        <pair geom1="baby_trunk_geom" geom2="baby_r_lower_arm_geom"/>
+        <pair geom1="baby_trunk_geom" geom2="baby_r_hand_geom"/>
+        <pair geom1="baby_r_upper_arm_geom" geom2="baby_r_hand_geom"/>
+        <pair geom1="baby_l_eye1" geom2="baby_r_hand_geom"/>
+        <pair geom1="baby_l_eye2" geom2="baby_r_hand_geom"/>
+        <pair geom1="baby_r_eye1" geom2="baby_r_hand_geom"/>
+        <pair geom1="baby_r_eye2" geom2="baby_r_hand_geom"/>
+    </contact>
+
+    <sensor>
+        <distance name="baby_touch_sensor" geom1="baby_r_hand_geom" geom2="baby_sticker" cutoff="2"/>
+    </sensor>
+
+    <actuator>
+        <motor joint="baby_r_upper_arm_lift" ctrlrange="-2.0 2.0" ctrllimited="true"/>
+        <motor joint="baby_r_upper_arm_roll" ctrlrange="-2.0 2.0" ctrllimited="true"/>
+        <motor joint="baby_r_upper_arm_flex" ctrlrange="-2.0 2.0" ctrllimited="true"/>
+        <motor joint="baby_r_lower_arm_flex" ctrlrange="-2.0 2.0" ctrllimited="true"/>
+        <motor joint="baby_r_hand_flex" ctrlrange="-2.0 2.0" ctrllimited="true"/>
+    </actuator>
+</mujoco>
