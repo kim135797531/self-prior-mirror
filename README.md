@@ -1,14 +1,14 @@
 # self-prior-mirror
 
-***Mirror Self-Recognition via Active Inference with Self-Prior***
+***Active Inference with a Self-Prior in the Mirror-Mark Task***
 
 Dongmin Kim, Hoshinori Kanazawa, and Yasuo Kuniyoshi
 
-arXiv preprint URL: https://arxiv.org/abs/26XX.XXXX
+arXiv preprint URL: https://arxiv.org/abs/2604.09673
 
 ---
 
-This repository provides the open source implementation of the Self-Prior agent in the paper "Mirror Self-Recognition via Active Inference with Self-Prior".
+This repository provides the open source implementation of the Self-Prior agent in the paper "Active Inference with a Self-Prior in the Mirror-Mark Task".
 
 ## Scope
 
@@ -47,14 +47,14 @@ uv run 02eval.py --seed 0 --device 0 --checkpoint_episode 5000 "log/robot_mirror
 ```
 
 ## Video samples
+### Robot
+
+<img src="./img/robot-seed20.gif" width="128">
+
 ### Baby
 
 <img src="./img/baby-seed2.gif" width="128">
 <img src="./img/baby-seed5.gif" width="128">
-
-### Robot
-
-<img src="./img/robot-seed20.gif" width="128">
 
 
 ## Acknowledgement
